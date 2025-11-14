@@ -1,100 +1,129 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="vi">
 
 <head>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.3/dist/leaflet.css' />
-    <script src='https://unpkg.com/leaflet@1.9.3/dist/leaflet.js'></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Ví dụ: Link tải xuống</title>
     <style>
-        html,
-        body,
-        #map {
-            height: 100%;
-            margin: 0;
+        body {
+            font-family: Inter, Segoe UI, Roboto, Arial;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            color: #111
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 8px
+        }
+
+        p {
+            margin: 6px 0 14px
+        }
+
+        .card {
+            border: 1px solid #e6e6e6;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: #fafafa
+        }
+
+        code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px
+        }
+
+        a.button,
+        button.button {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px
+        }
+
+        .small {
+            font-size: 13px;
+            color: #555
         }
     </style>
 </head>
 
 <body>
-    <div id='map'></div>
+
+    <div id="container"></div>
+
     <script>
-        const map = L.map('map').setView([20.992033949210303, 106.546847820282], 13);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19, attribution: 'Đại Đẹp Trai'
-        }).addTo(map);
+        async function load() {
+            let files = [
+                {
+                    index: 1,
+                    id: "btnApi",
+                    title: "Tạo file động trên client (Blob) và tải",
+                    description: "Dùng khi muốn sinh file (CSV, TXT) trực tiếp trên trình duyệt và cho người dùng tải xuống ngay",
+                    buttonText: "Tải file TXT mẫu"
+                }
+            ];
+            let html = ``;
+            files.forEach(element => {
+                html += `
+                    <div class="card">
+                        <strong>${element.index}) ${element.title}</strong>
+                        <p class="small">${element.description}</p>
 
-        let marker = L
-        .marker(map.getCenter())
-        .addTo(map)
-        .bindPopup('Fuck you.<br> Bitch.')
-        .openPopup();
+                        <p>
+                            <button class="button"
+                                onclick="
+                                    (async () => {
+                                        const log = document.getElementById('log_${element.index}');
+                                        log.textContent = 'Đang tải...';
+                                        try {
+                                            const res = await fetch('http://192.168.1.3:1000/file/download?filepath=backup.CommandLinuxApp&filename=SourceCode.zip');
+                                            
+                                            if (!res.ok) throw new Error('Server trả lỗi: ' + res.status);
+                                        console.log("res", res);
 
-        let routeLayer = L.polyline([], { color: 'blue', weight: 4 }).addTo(map);
-
-        let tradeLayer = L.layerGroup().addTo(map);
-
-        let heatLayer;
-
-        //map.panTo([lat, lng]); di chuyển màn hình tới nơi định vị
-        //marker.setLatLng(lat, lng);
-
-        var circle = L.circle([20.992033949210303, 106.546847820282], {
-            color: 'green',
-            fillColor: '#f03',
-            fillOpacity: 0.2,
-            radius: 500
-        }).addTo(map);
-
-        var polygon = L.polygon([
-            [20.97474401076064,106.5582847595215],
-            [20.990771831383917,106.58866882324219],
-            [20.96672945575421,106.62403106689455]
-        ]).addTo(map);
+                                            const blob = await res.blob();
 
 
+                                            const url = URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = 'invoice-123.pdf';
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            a.remove();
+                                            URL.revokeObjectURL(url);
+                                            log.textContent = 'Hoàn tất tải: invoice-123.pdf';
+                                        } catch (err) {
+                                            log.textContent = 'Lỗi khi tải: ' + err.message;
+                                        }
+                                    })();
+                                "
+                            >
+                                ${element.buttonText}
+                            </button>
+                        </p>
 
-        function updatePosition(lat, lng) {
+                        <pre id="log_${element.index}" class="small" style="margin-top:8px;"> </pre>
+                    </div>
 
-            const pos = [lat, lng];
-
-            routeLayer.addLatLng(pos);
+                `;
+            });
+            document.getElementById("container").innerHTML = html;
         }
 
-        function addTradePoint(lat, lng, label, color) {
-
-            const icon = L.divIcon({ className: 'trade-icon', html: `<div style="background:${color};width:12px;height:12px;border-radius:50%;border:2px solid white;"></div>` });
-
-            L.marker([lat, lng], { icon }).addTo(tradeLayer).bindPopup(label).openPopup();
-        }
-
-        chrome.webview.addEventListener('message', event => {
-            const msg = JSON.parse(event.data);
-            
-            switch (msg.type) {
-                case 'position': {
-                    updatePosition(msg.data.lat, msg.data.lng); 
-                    break;
-                }
-                case 'route': {
-                    routeLayer.setLatLngs(msg.data.map(p => [p.lat, p.lng])); 
-                    break;
-                }
-                case 'trade': {
-                    addTradePoint(msg.data.lat, msg.data.lng, msg.data.label, msg.data.color); 
-                    break;
-                }
-            }
-        });
-
-        map.on('click', e => {
-            chrome.webview.postMessage(JSON.stringify({ type: 'click', data: e.latlng }));
-        });
-
-        document.addEventListener("DOMContentLoaded", () => {
-            chrome.webview.postMessage(JSON.stringify({ type: 'ready' }));
-        });
-
+        load();
     </script>
 </body>
 
