@@ -59,72 +59,47 @@
 </head>
 
 <body>
-
     <div id="container"></div>
-
     <script>
 
         async function load() {
             let files = [
                 {
                     index: 1,
-                    id: "btnApi",
                     title: "Tạo file động trên client (Blob) và tải",
                     description: "Dùng khi muốn sinh file (CSV, TXT) trực tiếp trên trình duyệt và cho người dùng tải xuống ngay",
-                    buttonText: "Tải file TXT mẫu"
+                    buttonText: "Tải file",
+                    link: "http://192.168.1.3:1000/file/download?filepath=backup.CommandLinuxApp&filename=SourceCode.zip"
                 }
             ];
+
             let html = ``;
             files.forEach(element => {
                 html += `
                     <div class="card">
                         <strong>${element.index}) ${element.title}</strong>
                         <p class="small">${element.description}</p>
-
                         <p>
                             <button class="button"
                                 onclick="
                                     (async () => {
-                                        const log = document.getElementById('log_${element.index}');
-                                        log.textContent = 'Đang tải...';
-                                        try {
-                                            const res = await fetch('http://192.168.1.3:1000/file/download?filepath=backup.CommandLinuxApp&filename=SourceCode.zip');
-                                            
-                                            if (!res.ok) throw new Error('Server trả lỗi: ' + res.status);
-                                        console.log("res", res);
-
-                                            const blob = await res.blob();
-
-
-                                            const url = URL.createObjectURL(blob);
-                                            const a = document.createElement('a');
-                                            a.href = url;
-                                            a.download = 'invoice-123.pdf';
-                                            document.body.appendChild(a);
-                                            a.click();
-                                            a.remove();
-                                            URL.revokeObjectURL(url);
-                                            log.textContent = 'Hoàn tất tải: invoice-123.pdf';
-                                        } catch (err) {
-                                            log.textContent = 'Lỗi khi tải: ' + err.message;
-                                        }
+                                        window.open(
+                                            '${element.link}',
+                                            '_blank'
+                                        );
                                     })();
                                 "
                             >
                                 ${element.buttonText}
                             </button>
                         </p>
-
-                        <pre id="log_${element.index}" class="small" style="margin-top:8px;"> </pre>
                     </div>
 
                 `;
             });
             document.getElementById("container").innerHTML = html;
         }
-
         load();
     </script>
 </body>
-
 </html>
