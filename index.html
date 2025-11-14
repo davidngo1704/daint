@@ -1,3 +1,101 @@
-<h1>Privacy Policy</h1>
-<p>This application uses your data to perform Facebook page management actions.</p>
-<p>Lồn.</p>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.3/dist/leaflet.css' />
+    <script src='https://unpkg.com/leaflet@1.9.3/dist/leaflet.js'></script>
+    <style>
+        html,
+        body,
+        #map {
+            height: 100%;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id='map'></div>
+    <script>
+        const map = L.map('map').setView([20.992033949210303, 106.546847820282], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: 'Đại Đẹp Trai'
+        }).addTo(map);
+
+        let marker = L
+        .marker(map.getCenter())
+        .addTo(map)
+        .bindPopup('Fuck you.<br> Bitch.')
+        .openPopup();
+
+        let routeLayer = L.polyline([], { color: 'blue', weight: 4 }).addTo(map);
+
+        let tradeLayer = L.layerGroup().addTo(map);
+
+        let heatLayer;
+
+        //map.panTo([lat, lng]); di chuyển màn hình tới nơi định vị
+        //marker.setLatLng(lat, lng);
+
+        var circle = L.circle([20.992033949210303, 106.546847820282], {
+            color: 'green',
+            fillColor: '#f03',
+            fillOpacity: 0.2,
+            radius: 500
+        }).addTo(map);
+
+        var polygon = L.polygon([
+            [20.97474401076064,106.5582847595215],
+            [20.990771831383917,106.58866882324219],
+            [20.96672945575421,106.62403106689455]
+        ]).addTo(map);
+
+
+
+        function updatePosition(lat, lng) {
+
+            const pos = [lat, lng];
+
+            routeLayer.addLatLng(pos);
+        }
+
+        function addTradePoint(lat, lng, label, color) {
+
+            const icon = L.divIcon({ className: 'trade-icon', html: `<div style="background:${color};width:12px;height:12px;border-radius:50%;border:2px solid white;"></div>` });
+
+            L.marker([lat, lng], { icon }).addTo(tradeLayer).bindPopup(label).openPopup();
+        }
+
+        chrome.webview.addEventListener('message', event => {
+            const msg = JSON.parse(event.data);
+            
+            switch (msg.type) {
+                case 'position': {
+                    updatePosition(msg.data.lat, msg.data.lng); 
+                    break;
+                }
+                case 'route': {
+                    routeLayer.setLatLngs(msg.data.map(p => [p.lat, p.lng])); 
+                    break;
+                }
+                case 'trade': {
+                    addTradePoint(msg.data.lat, msg.data.lng, msg.data.label, msg.data.color); 
+                    break;
+                }
+            }
+        });
+
+        map.on('click', e => {
+            chrome.webview.postMessage(JSON.stringify({ type: 'click', data: e.latlng }));
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            chrome.webview.postMessage(JSON.stringify({ type: 'ready' }));
+        });
+
+    </script>
+</body>
+
+</html>
