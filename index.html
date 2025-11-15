@@ -63,32 +63,54 @@
     <script>
 
         async function load() {
-            let files = [
-                {
-                    index: 1,
-                    title: "Tạo file động trên client (Blob) và tải",
-                    description: "Dùng khi muốn sinh file (CSV, TXT) trực tiếp trên trình duyệt và cho người dùng tải xuống ngay",
-                    buttonText: "Tải file",
-                    link: "http://192.168.1.3:1000/file/download?filepath=backup.CommandLinuxApp&filename=SourceCode.zip"
-                }
-            ];
 
-            let html = ``;
-            files.forEach(element => {
+try {
+    const res = await fetch("https://rtafvndlc6mc6g5apdwzdjduma0sjicv.lambda-url.ap-southeast-2.on.aws/?id=89ce40e7-73e5-4f35-a3e4-22cf836e19ea");
+
+    if (!res.ok) {
+      throw new Error("HTTP error: " + res.status);
+    }
+
+    const json = await res.json();
+    
+                let html = ``;
+            json.data.forEach(element => {
                 html += `
                     <div class="card">
                         <strong>${element.index}) ${element.title}</strong>
                         <p class="small">${element.description}</p>
                         <p>
-                            <a href="${element.link}" class="button" target="_blank" rel="noopener">${element.buttonText}</a>
+                `;
+
+                element.links.forEach(linkObj => {
+                    html += `
+                        <a href="${linkObj.link}" 
+                        class="button" 
+                        target="_blank" 
+                        rel="noopener">
+                        ${linkObj.buttonText}
+                        </a>
+                    `;
+                });
+
+                html += `
                         </p>
                     </div>
-
                 `;
             });
+
             document.getElementById("container").innerHTML = html;
+
+
+  } catch (err) {
+    console.error("Fetch error:", err);
+  }
+
+
+
         }
         load();
     </script>
 </body>
+
 </html>
