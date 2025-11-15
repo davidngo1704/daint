@@ -80,18 +80,7 @@
                         <strong>${element.index}) ${element.title}</strong>
                         <p class="small">${element.description}</p>
                         <p>
-                            <button class="button"
-                                onclick="
-                                    (async () => {
-                                        window.open(
-                                            '${element.link}',
-                                            '_blank'
-                                        );
-                                    })();
-                                "
-                            >
-                                ${element.buttonText}
-                            </button>
+                            <a href="${element.link}" class="button" target="_blank" rel="noopener">${element.buttonText}</a>
                         </p>
                     </div>
 
